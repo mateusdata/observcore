@@ -14,6 +14,8 @@ interface Alert {
   isResolved: boolean;
   createdAt: string;
   metricId?: string;
+  value?: number;
+  zScoreValue?: number;
 }
 
 interface Service {
@@ -250,10 +252,10 @@ export default function DashboardPage() {
                         </p>
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-xs">
-                            Valor: {alert.value.toFixed(2)}
+                            Valor: {alert?.value?.toFixed(2) ?? 'N/A'}
                           </span>
                           <span className="text-xs">
-                            Z-Score: {alert.zScoreValue.toFixed(2)}
+                            Z-Score: {alert?.zScoreValue?.toFixed(2) ?? 'N/A'}
                           </span>
                         </div>
                       </div>

@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { Activity, BarChart3, Settings, Server, AlertTriangle, LogOut, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -15,39 +16,39 @@ export default function DashboardLayout({
   const { logout, user } = useAuth()
 
   const navigationItems = (
-    <>
-      <div className="group flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground cursor-pointer bg-accent">
-        <BarChart3 className="mr-2 h-4 w-4 shrink-0" />
+    <div className="flex flex-col gap-2">
+      <Link href="/dashboard" className="flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors bg-accent/50 text-accent-foreground">
+        <BarChart3 className="mr-3 h-4 w-4 shrink-0" />
         <span className="truncate">Visão Geral</span>
-      </div>
-      <div className="group flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground cursor-pointer">
-        <Server className="mr-2 h-4 w-4 shrink-0" />
+      </Link>
+      <Link href="/dashboard/servers" className="flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors text-muted-foreground">
+        <Server className="mr-3 h-4 w-4 shrink-0" />
         <span className="truncate">Servidores</span>
-      </div>
-      <div className="group flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground cursor-pointer">
-        <AlertTriangle className="mr-2 h-4 w-4 shrink-0" />
+      </Link>
+      <Link href="/dashboard/alerts" className="flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors text-muted-foreground">
+        <AlertTriangle className="mr-3 h-4 w-4 shrink-0" />
         <span className="truncate">Alertas</span>
-      </div>
-      <div className="group flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground cursor-pointer">
-        <Settings className="mr-2 h-4 w-4 shrink-0" />
+      </Link>
+      <Link href="/dashboard/settings" className="flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors text-muted-foreground">
+        <Settings className="mr-3 h-4 w-4 shrink-0" />
         <span className="truncate">Configurações</span>
-      </div>
+      </Link>
       <button 
         onClick={logout}
-        className="group flex w-full items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground cursor-pointer text-red-500"
+        className="flex w-full items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 transition-colors text-red-500 mt-4"
       >
-        <LogOut className="mr-2 h-4 w-4 shrink-0" />
+        <LogOut className="mr-3 h-4 w-4 shrink-0" />
         <span className="truncate">Sair</span>
       </button>
-    </>
+    </div>
   )
 
   return (
     <ProtectedRoute>
       <div className="flex min-h-screen flex-col">
-        <header className="sticky top-0 z-40 border-b bg-background">
-          <div className="container flex h-16 items-center justify-between px-4 py-4">
-            <div className="flex items-center gap-2">
+        <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="container flex h-16 items-center justify-between px-4 md:px-6 max-w-8xl mx-auto">
+            <div className="flex items-center gap-4 md:gap-8">
               <Sheet>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon" className="md:hidden">
@@ -56,42 +57,33 @@ export default function DashboardLayout({
                 </SheetTrigger>
                 <SheetContent side="left" className="w-64 p-0">
                   <div className="flex items-center gap-2 font-bold text-lg p-6 border-b">
-                    <Activity className="h-5 w-5" />
+                    <Activity className="h-5 w-5 text-primary" />
                     <span>ObservCore</span>
                   </div>
-                  <nav className="grid items-start gap-2 p-4">
+                  <nav className="p-4">
                     {navigationItems}
                   </nav>
                 </SheetContent>
               </Sheet>
-              <div className="flex items-center gap-2 font-bold text-lg md:text-xl">
-                <Activity className="h-5 w-5 md:h-6 md:w-6" />
-                <span className="hidden sm:inline">ObservCore Panel</span>
-                <span className="sm:hidden">ObservCore</span>
-              </div>
+              
+              <Link href="/dashboard" className="flex items-center gap-2 font-bold text-lg md:text-xl">
+                <Activity className="h-6 w-6 text-primary hidden md:block" />
+                <span>ObservCore Panel</span>
+              </Link>
             </div>
-            <div className="flex items-center gap-2 md:gap-4">
-              <div className="hidden sm:flex items-center gap-2 text-xs md:text-sm">
-                {user && (
-                  <span className="text-muted-foreground">{user.name}</span>
-                )}
+
+            <div className="flex items-center gap-4">
+              <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
+                {user && <span>{user.name}</span>}
               </div>
               <ModeToggle />
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={logout}
-                className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10"
-                title="Sair"
-              >
-                <LogOut className="h-5 w-5" />
-              </Button>
             </div>
           </div>
         </header>
-        <div className="container flex-1 items-start md:grid md:grid-cols-[220px_1fr] lg:grid-cols-[240px_1fr] md:gap-6 md:py-6">
-          <aside className="fixed top-14 z-30 -ml-2 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 md:sticky md:block">
-            <nav className="grid items-start gap-2 p-4">
+
+        <div className="container flex-1 items-start md:grid md:grid-cols-[240px_1fr] md:gap-8 px-4 md:px-6 max-w-8xl mx-auto py-8">
+          <aside className="fixed top-20 z-30 -ml-2 hidden h-[calc(100vh-5rem)] w-full shrink-0 md:sticky md:block border-r pr-6">
+            <nav className="grid items-start gap-2">
               {navigationItems}
             </nav>
           </aside>

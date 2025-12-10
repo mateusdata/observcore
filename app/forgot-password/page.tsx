@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,35 +18,42 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
+import { api } from "@/lib/api"
 
-const loginSchema = z.object({
+const forgotPasswordSchema = z.object({
   email: z.string().email("E-mail inválido"),
-  password: z.string().min(1, "Senha é obrigatória"),
 })
 
-type LoginFormValues = z.infer<typeof loginSchema>
+type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>
 
-export default function LoginPage() {
-  const { login } = useAuth()
+export default function ForgotPasswordPage() {
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
+  const form = useForm<ForgotPasswordFormValues>({
+    resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
       email: "",
-      password: "",
     },
   })
 
-  async function onSubmit(values: LoginFormValues) {
+  const onSubmit = async (values: ForgotPasswordFormValues) => {
     setLoading(true)
     setError("")
-
+    
     try {
-      await login(values.email, values.password)
-    } catch (error: any) {
-      setError(error.response?.data?.message || "Erro ao fazer login. Verifique suas credenciais.")
+      const response = await api.post("/auth/send-code", { email: values.email }, {
+        validateStatus: () => true
+      })
+      
+      if (response.status === 200 || response.status === 201) {
+        router.push(`/verify-code?email=${encodeURIComponent(values.email)}`)
+      } else {
+        setError(response.data?.message || "Erro ao enviar código. Tente novamente.")
+      }
+    } catch (err: any) {
+      setError("Erro de conexão. Tente novamente.")
     } finally {
       setLoading(false)
     }
@@ -55,23 +62,20 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
-        <CardHeader className="space-y-4">
-          <div className="flex items-center justify-center gap-2">
-            <Activity className="h-8 w-8" />
-            <span className="text-2xl font-bold">ObservCore</span>
+        <CardHeader className="space-y-1 text-center">
+          <div className="flex justify-center mb-4">
+            <Activity className="h-12 w-12" />
           </div>
-          <div>
-            <CardTitle className="text-2xl">Acessar Conta</CardTitle>
-            <CardDescription>
-              Digite seu e-mail abaixo para entrar na sua conta
-            </CardDescription>
-          </div>
+          <CardTitle className="text-2xl md:text-3xl">Esqueci a Senha</CardTitle>
+          <CardDescription>
+            Digite seu e-mail para receber o código de recuperação
+          </CardDescription>
         </CardHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <CardContent className="space-y-4">
               {error && (
-                <div className="p-3 text-sm text-red-500 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-md">
+                <div className="p-3 text-sm rounded-md bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 border">
                   {error}
                 </div>
               )}
@@ -93,37 +97,15 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="flex items-center justify-between">
-                      <FormLabel>Senha</FormLabel>
-                      <Link href="/forgot-password" className="text-sm underline">
-                        Esqueci a senha
-                      </Link>
-                    </div>
-                    <FormControl>
-                      <Input
-                        type="password"
-                        disabled={loading}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </CardContent>
             <CardFooter className="flex flex-col gap-4 pt-2">
               <Button className="w-full" type="submit" disabled={loading}>
-                {loading ? "Entrando..." : "Entrar"}
+                {loading ? "Enviando..." : "Enviar Código"}
               </Button>
               <div className="text-center text-sm">
-                Não tem uma conta?{" "}
-                <Link href="/register" className="underline">
-                  Cadastre-se
+                Lembrou a senha?{" "}
+                <Link href="/login" className="underline">
+                  Fazer login
                 </Link>
               </div>
             </CardFooter>

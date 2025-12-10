@@ -48,11 +48,13 @@ export default function DashboardPage() {
 
   useEffect(() => {
     loadDashboardData()
-    const interval = setInterval(loadDashboardData, 30000)
+    const interval = setInterval(loadDashboardData, 3000)
+   
     return () => clearInterval(interval)
   }, [])
 
   const loadDashboardData = async () => {
+    
     try {
       const [alertsRes, servicesRes, metricsRes, configRes] = await Promise.all([
         api.get('/alerts'),

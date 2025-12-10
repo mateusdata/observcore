@@ -72,9 +72,9 @@ export default function DashboardLayout({
             </div>
             <div className="flex items-center gap-2 md:gap-4">
               <div className="hidden sm:flex items-center gap-2 text-xs md:text-sm">
-                <span className="text-muted-foreground">Status: Operacional</span>
+               
                 {user && (
-                  <span className="text-muted-foreground">• {user.name}</span>
+                  <span className="text-muted-foreground">{user.name}</span>
                 )}
               </div>
               <ModeToggle />

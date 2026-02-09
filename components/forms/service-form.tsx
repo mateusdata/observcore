@@ -24,7 +24,7 @@ import { Loader2 } from "lucide-react"
 
 const serviceSchema = z.object({
     name: z.string().min(2, "Nome deve ter no minimo 2 caracteres"),
-    url: z.string().url("URL invalida").optional().or(z.literal("")),
+    description: z.string().optional(),
     prometheusConfigId: z.string().min(1, "Selecione uma instancia Prometheus"),
 })
 
@@ -50,11 +50,11 @@ export function ServiceForm({
     onCancel,
     isEditing = false,
 }: ServiceFormProps) {
-    const form = useForm<ServiceFormValues>({
+    const form = useForm<ServiceFormValues, unknown, ServiceFormValues>({
         resolver: zodResolver(serviceSchema),
         defaultValues: defaultValues || {
             name: "",
-            url: "",
+            description: "",
             prometheusConfigId: "",
         },
         mode: "onChange",
@@ -83,12 +83,12 @@ export function ServiceForm({
 
                 <FormField
                     control={form.control}
-                    name="url"
+                    name="description"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>URL do Endpoint (opcional)</FormLabel>
+                            <FormLabel>Descricao (opcional)</FormLabel>
                             <FormControl>
-                                <Input placeholder="http://api.example.com" {...field} />
+                                <Input placeholder="Servico de gateway da API" {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>

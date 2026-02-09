@@ -43,14 +43,14 @@ interface PrometheusConfig {
 interface Service {
     id: string
     name: string
-    url: string
+    description?: string
     prometheusConfigId: string
 }
 
 interface Metric {
     id: string
     name: string
-    query: string
+    promQL: string
     zScoreThreshold: number
     checkInterval: number
     serviceId: string
@@ -74,13 +74,13 @@ export default function SettingsPage() {
     const loadData = async () => {
         try {
             const [configRes, servicesRes, metricsRes] = await Promise.all([
-                api.get("/prometheus-configs"),
+                api.get("/prometheus-configs").catch(() => ({ data: null })),
                 api.get("/services"),
                 api.get("/metrics"),
             ])
             setPrometheusConfig(configRes.data)
-            setServices(servicesRes.data)
-            setMetrics(metricsRes.data)
+            setServices(servicesRes.data || [])
+            setMetrics(metricsRes.data || [])
         } catch (error) {
             console.error(error)
         } finally {
@@ -91,7 +91,7 @@ export default function SettingsPage() {
     const handlePrometheusSubmit = async (data: { name: string; url: string }) => {
         try {
             if (prometheusConfig) {
-                await api.patch(`/prometheus-configs/${prometheusConfig.id}`, data)
+                await api.patch("/prometheus-configs", data)
             } else {
                 await api.post("/prometheus-configs", data)
             }
@@ -103,7 +103,7 @@ export default function SettingsPage() {
 
     const handleServiceSubmit = async (data: {
         name: string
-        url?: string
+        description?: string
         prometheusConfigId: string
     }) => {
         try {
@@ -122,7 +122,7 @@ export default function SettingsPage() {
 
     const handleMetricSubmit = async (data: {
         name: string
-        query: string
+        promQL: string
         zScoreThreshold: number
         checkInterval: number
         serviceId: string
@@ -267,7 +267,7 @@ export default function SettingsPage() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Nome</TableHead>
-                                    <TableHead>URL</TableHead>
+                                    <TableHead>Descricao</TableHead>
                                     <TableHead className="w-[100px]">Acoes</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -276,7 +276,7 @@ export default function SettingsPage() {
                                     <TableRow key={service.id}>
                                         <TableCell className="font-medium">{service.name}</TableCell>
                                         <TableCell className="text-muted-foreground">
-                                            {service.url || "-"}
+                                            {service.description || "-"}
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex gap-2">
@@ -404,7 +404,7 @@ export default function SettingsPage() {
                             editingService
                                 ? {
                                     name: editingService.name,
-                                    url: editingService.url,
+                                    description: editingService.description || "",
                                     prometheusConfigId: editingService.prometheusConfigId,
                                 }
                                 : undefined
@@ -434,7 +434,7 @@ export default function SettingsPage() {
                             editingMetric
                                 ? {
                                     name: editingMetric.name,
-                                    query: editingMetric.query,
+                                    promQL: editingMetric.promQL,
                                     zScoreThreshold: editingMetric.zScoreThreshold,
                                     checkInterval: editingMetric.checkInterval,
                                     serviceId: editingMetric.serviceId,

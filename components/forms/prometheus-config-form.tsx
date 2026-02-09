@@ -33,7 +33,7 @@ export function PrometheusConfigForm({
     onSubmit,
     isEditing = false,
 }: PrometheusConfigFormProps) {
-    const form = useForm<PrometheusConfigFormValues>({
+    const form = useForm<PrometheusConfigFormValues, unknown, PrometheusConfigFormValues>({
         resolver: zodResolver(prometheusConfigSchema),
         defaultValues: defaultValues || {
             name: "",

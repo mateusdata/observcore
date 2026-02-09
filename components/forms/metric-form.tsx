@@ -25,14 +25,21 @@ import { Loader2 } from "lucide-react"
 
 const metricSchema = z.object({
     name: z.string().min(2, "Nome deve ter no minimo 2 caracteres"),
-    query: z.string().min(1, "Query PromQL e obrigatoria"),
-    zScoreThreshold: z.coerce
-        .number()
-        .min(1, "Minimo 1")
-        .max(5, "Maximo 5"),
-    checkInterval: z.coerce
-        .number()
-        .min(10, "Intervalo minimo de 10 segundos"),
+    promQL: z.string().min(1, "Query PromQL e obrigatoria"),
+    zScoreThreshold: z.string().refine(
+        (val) => {
+            const num = parseFloat(val)
+            return !isNaN(num) && num >= 1 && num <= 5
+        },
+        { message: "Valor deve estar entre 1 e 5" }
+    ),
+    checkInterval: z.string().refine(
+        (val) => {
+            const num = parseInt(val)
+            return !isNaN(num) && num >= 10
+        },
+        { message: "Intervalo minimo de 10 segundos" }
+    ),
     serviceId: z.string().min(1, "Selecione um servico"),
 })
 
@@ -43,10 +50,18 @@ interface Service {
     name: string
 }
 
+interface MetricFormDefaultValues {
+    name: string
+    promQL: string
+    zScoreThreshold: number
+    checkInterval: number
+    serviceId: string
+}
+
 interface MetricFormProps {
-    defaultValues?: MetricFormValues
+    defaultValues?: MetricFormDefaultValues
     services: Service[]
-    onSubmit: (data: MetricFormValues) => Promise<void>
+    onSubmit: (data: MetricFormDefaultValues) => Promise<void>
     onCancel: () => void
     isEditing?: boolean
 }
@@ -60,18 +75,32 @@ export function MetricForm({
 }: MetricFormProps) {
     const form = useForm<MetricFormValues>({
         resolver: zodResolver(metricSchema),
-        defaultValues: defaultValues || {
-            name: "",
-            query: "",
-            zScoreThreshold: 2,
-            checkInterval: 60,
-            serviceId: "",
-        },
+        defaultValues: defaultValues
+            ? {
+                name: defaultValues.name,
+                promQL: defaultValues.promQL,
+                zScoreThreshold: String(defaultValues.zScoreThreshold),
+                checkInterval: String(defaultValues.checkInterval),
+                serviceId: defaultValues.serviceId,
+            }
+            : {
+                name: "",
+                promQL: "",
+                zScoreThreshold: "3",
+                checkInterval: "60",
+                serviceId: "",
+            },
         mode: "onChange",
     })
 
     const handleSubmit = async (data: MetricFormValues) => {
-        await onSubmit(data)
+        await onSubmit({
+            name: data.name,
+            promQL: data.promQL,
+            zScoreThreshold: parseFloat(data.zScoreThreshold),
+            checkInterval: parseInt(data.checkInterval),
+            serviceId: data.serviceId,
+        })
     }
 
     return (
@@ -93,7 +122,7 @@ export function MetricForm({
 
                 <FormField
                     control={form.control}
-                    name="query"
+                    name="promQL"
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>Query PromQL</FormLabel>
@@ -116,7 +145,7 @@ export function MetricForm({
                             <FormItem>
                                 <FormLabel>Z-Score Threshold</FormLabel>
                                 <FormControl>
-                                    <Input type="number" step="0.1" {...field} />
+                                    <Input type="number" step="0.1" min={1} max={5} {...field} />
                                 </FormControl>
                                 <FormDescription>Entre 1 e 5</FormDescription>
                                 <FormMessage />

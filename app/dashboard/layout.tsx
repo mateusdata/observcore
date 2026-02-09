@@ -1,12 +1,39 @@
 "use client"
 
 import Link from "next/link"
-import { Activity, BarChart3, Settings, Server, AlertTriangle, LogOut, Menu } from "lucide-react"
+import { usePathname } from "next/navigation"
+import { Activity, BarChart3, Settings, Server, AlertTriangle, LogOut, Menu, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { ModeToggle } from "@/components/ui/mode-toggle"
 import { ProtectedRoute } from "@/components/protected-route"
 import { useAuth } from "@/contexts/auth-context"
+import { cn } from "@/lib/utils"
+
+const navItems = [
+  { href: "/dashboard", label: "Visao Geral", icon: BarChart3 },
+  { href: "/dashboard/services", label: "Servicos", icon: Server },
+  { href: "/dashboard/metrics", label: "Metricas", icon: Zap },
+  { href: "/dashboard/alerts", label: "Alertas", icon: AlertTriangle },
+  { href: "/dashboard/settings", label: "Configuracoes", icon: Settings },
+]
+
+function NavLink({ href, label, icon: Icon, isActive }: { href: string; label: string; icon: React.ElementType; isActive: boolean }) {
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+        isActive
+          ? "bg-primary/10 text-primary"
+          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+      )}
+    >
+      <Icon className="h-4 w-4 shrink-0" />
+      <span>{label}</span>
+    </Link>
+  )
+}
 
 export default function DashboardLayout({
   children,
@@ -14,80 +41,88 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const { logout, user } = useAuth()
+  const pathname = usePathname()
 
-  const navigationItems = (
-    <div className="flex flex-col gap-2">
-      <Link href="/dashboard" className="flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors bg-accent/50 text-accent-foreground">
-        <BarChart3 className="mr-3 h-4 w-4 shrink-0" />
-        <span className="truncate">Visão Geral</span>
-      </Link>
-      <Link href="/dashboard/servers" className="flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors text-muted-foreground">
-        <Server className="mr-3 h-4 w-4 shrink-0" />
-        <span className="truncate">Serviços</span>
-      </Link>
-      <Link href="/dashboard/alerts" className="flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors text-muted-foreground">
-        <AlertTriangle className="mr-3 h-4 w-4 shrink-0" />
-        <span className="truncate">Alertas</span>
-      </Link>
-      <Link href="/dashboard/settings" className="flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors text-muted-foreground">
-        <Settings className="mr-3 h-4 w-4 shrink-0" />
-        <span className="truncate">Configurações</span>
-      </Link>
-      <button 
-        onClick={logout}
-        className="flex w-full items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 transition-colors text-red-500 mt-4"
-      >
-        <LogOut className="mr-3 h-4 w-4 shrink-0" />
-        <span className="truncate">Sair</span>
-      </button>
+  const isActive = (href: string) => {
+    if (href === "/dashboard") {
+      return pathname === "/dashboard"
+    }
+    return pathname.startsWith(href)
+  }
+
+  const navigationContent = (
+    <div className="flex flex-col h-full">
+      <div className="flex items-center gap-2 px-4 py-5 border-b border-border/50">
+        <Activity className="h-6 w-6 text-primary" />
+        <span className="font-bold text-lg">ObservCore</span>
+      </div>
+
+      <nav className="flex-1 p-3 space-y-1">
+        {navItems.map((item) => (
+          <NavLink
+            key={item.href}
+            href={item.href}
+            label={item.label}
+            icon={item.icon}
+            isActive={isActive(item.href)}
+          />
+        ))}
+      </nav>
+
+      <div className="border-t border-border/50 p-3">
+        {user && (
+          <div className="flex items-center gap-3 px-3 py-2 mb-2">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-medium text-sm">
+              {user.name?.charAt(0).toUpperCase() || "U"}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{user.name}</p>
+              <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+            </div>
+          </div>
+        )}
+        <button
+          onClick={logout}
+          className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-500/10 transition-colors"
+        >
+          <LogOut className="h-4 w-4 shrink-0" />
+          <span>Sair</span>
+        </button>
+      </div>
     </div>
   )
 
   return (
     <ProtectedRoute>
-      <div className="flex min-h-screen flex-col">
-        <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="container flex h-16 items-center justify-between px-4 md:px-6 max-w-8xl mx-auto">
-            <div className="flex items-center gap-4 md:gap-8">
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="md:hidden">
-                    <Menu className="h-5 w-5" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-64 p-0">
-                  <div className="flex items-center gap-2 font-bold text-lg p-6 border-b">
-                    <Activity className="h-5 w-5 text-primary" />
-                    <span>ObservCore</span>
-                  </div>
-                  <nav className="p-4">
-                    {navigationItems}
-                  </nav>
-                </SheetContent>
-              </Sheet>
-              
-              <Link href="/dashboard" className="flex items-center gap-2 font-bold text-lg md:text-xl">
-                <Activity className="h-6 w-6 text-primary hidden md:block" />
-                <span>ObservCore Panel</span>
-              </Link>
+      <div className="flex min-h-screen bg-background">
+        <aside className="hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 border-r border-border/50 bg-card">
+          {navigationContent}
+        </aside>
+
+        <div className="flex flex-col flex-1 md:pl-60">
+          <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:hidden">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-60 p-0">
+                {navigationContent}
+              </SheetContent>
+            </Sheet>
+
+            <div className="flex items-center gap-2">
+              <Activity className="h-5 w-5 text-primary" />
+              <span className="font-bold">ObservCore</span>
             </div>
 
-            <div className="flex items-center gap-4">
-              <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
-                {user && <span>{user.name}</span>}
-              </div>
+            <div className="ml-auto">
               <ModeToggle />
             </div>
-          </div>
-        </header>
+          </header>
 
-        <div className="container flex-1 items-start md:grid md:grid-cols-[240px_1fr] md:gap-8 px-4 md:px-6 max-w-8xl mx-auto py-8">
-          <aside className="fixed top-20 z-30 -ml-2 hidden h-[calc(100vh-5rem)] w-full shrink-0 md:sticky md:block border-r pr-6">
-            <nav className="grid items-start gap-2">
-              {navigationItems}
-            </nav>
-          </aside>
-          <main className="flex w-full flex-col overflow-hidden">
+          <main className="flex-1 p-6">
             {children}
           </main>
         </div>

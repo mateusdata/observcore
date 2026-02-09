@@ -81,7 +81,7 @@ export default function DashboardPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-        <p className="text-muted-foreground">Carregando dashboard...</p>
+        <p className="text-muted-foreground">Carregando painel...</p>
       </div>
     )
   }
@@ -89,7 +89,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Visao Geral</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Painel</h1>
         <p className="text-muted-foreground">
           Status do sistema e anomalias detectadas
         </p>

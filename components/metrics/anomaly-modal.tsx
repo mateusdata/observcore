@@ -87,7 +87,7 @@ export function AnomalyModal({ metric, open, onClose }: AnomalyModalProps) {
         }
     }
 
-    const CustomTooltip = ({ active, payload, label }: any) => {
+    const CustomTooltip = ({ active, payload }: any) => {
         if (active && payload && payload.length) {
             const data = payload[0].payload
             const timeStr = format(new Date(data.time), "dd/MM HH:mm:ss")

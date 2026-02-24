@@ -20,8 +20,9 @@ import {
     DialogDescription,
 } from "@/components/ui/dialog"
 import { MetricForm } from "@/components/forms/metric-form"
+import { AnomalyModal } from "@/components/metrics/anomaly-modal"
 import { api } from "@/lib/api"
-import { Plus, Pencil, Trash2, Loader2, Zap, Server } from "lucide-react"
+import { Plus, Pencil, Trash2, Loader2, Zap, Server, Activity } from "lucide-react"
 
 interface Service {
     id: string
@@ -43,6 +44,8 @@ export default function MetricsPage() {
     const [loading, setLoading] = useState(true)
     const [dialogOpen, setDialogOpen] = useState(false)
     const [editingMetric, setEditingMetric] = useState<Metric | null>(null)
+    const [anomalyModalOpen, setAnomalyModalOpen] = useState(false)
+    const [selectedMetric, setSelectedMetric] = useState<Metric | null>(null)
 
     useEffect(() => {
         loadData()
@@ -103,6 +106,11 @@ export default function MetricsPage() {
         setDialogOpen(true)
     }
 
+    const openAnomalyModal = (metric: Metric) => {
+        setSelectedMetric(metric)
+        setAnomalyModalOpen(true)
+    }
+
     const getServiceName = (serviceId: string) => {
         const service = services.find((s) => s.id === serviceId)
         return service?.name || "-"
@@ -160,7 +168,16 @@ export default function MetricsPage() {
                             <TableBody>
                                 {metrics.map((metric) => (
                                     <TableRow key={metric.id}>
-                                        <TableCell className="font-medium">{metric.name}</TableCell>
+                                        <TableCell>
+                                            <button
+                                                onClick={() => openAnomalyModal(metric)}
+                                                className="font-medium hover:underline text-primary flex items-center gap-1.5 transition-colors focus:outline-none"
+                                                title="Ver deteccao de anomalias com Z-Score"
+                                            >
+                                                <Activity className="h-3.5 w-3.5" />
+                                                {metric.name}
+                                            </button>
+                                        </TableCell>
                                         <TableCell>{getServiceName(metric.serviceId)}</TableCell>
                                         <TableCell>
                                             <Badge variant="outline">{metric.zScoreThreshold}</Badge>
@@ -223,6 +240,12 @@ export default function MetricsPage() {
                     />
                 </DialogContent>
             </Dialog>
+
+            <AnomalyModal
+                metric={selectedMetric}
+                open={anomalyModalOpen}
+                onClose={() => setAnomalyModalOpen(false)}
+            />
         </div>
     )
 }
